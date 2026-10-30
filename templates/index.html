@@ -1,0 +1,58 @@
+
+<div class="game-info">
+
+    <div class="timer">
+        <span>TIME</span>
+        <h2 id="timer">00:00</h2>
+    </div>
+
+    <div class="score">
+        <span>CORRECT</span>
+        <h2 id="score">0</h2>
+    </div>
+
+    <div class="score">
+        <span>WRONG</span>
+        <h2 id="wrong">0</h2>
+    </div>
+
+</div>
+
+<div class="game-box">
+
+    <h3>Select Game Mode</h3>
+
+    <select id="gameMode">
+        <option value="num">Number → Alphabet</option>
+        <option value="alpha">Alphabet → Number</option>
+    </select>
+
+    <p id="instruction">Ready to test your brain?</p>
+
+    <h1 id="number">?</h1>
+
+    <input
+        type="text"
+        id="answer"
+        placeholder="Enter your answer"
+        autocomplete="off"
+        disabled
+    >
+
+    <button id="startBtn" onclick="startGame()">
+        Start Game
+    </button>
+
+    <button id="submitBtn" onclick="submitAnswer()" hidden>
+        Submit Answer
+    </button>
+
+    <button id="finishBtn" onclick="finishGame()" hidden>
+        Finish Game
+    </button>
+
+    <div id="message"></div>
+
+    <div id="finalResult"></div>
+
+</div>

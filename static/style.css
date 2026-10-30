@@ -1,0 +1,17 @@
+select {
+    width: 100%;
+    padding: 14px;
+    margin: 15px 0;
+    border-radius: 10px;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#finalResult {
+    margin-top: 25px;
+    line-height: 2;
+    background: #101827;
+    padding: 15px;
+    border-radius: 12px;
+}
