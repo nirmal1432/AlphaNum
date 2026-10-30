@@ -19,6 +19,29 @@
     box-sizing: border-box;
 }
 
+.brand-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 20px;
+}
+
+.brand-logo img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    border-radius: 18px;
+}
+
+.brand-logo-large {
+    width: min(260px, 70vw);
+}
+
+.brand-logo-small {
+    width: min(150px, 45vw);
+}
+
 body {
     font-family: 'Nunito', sans-serif;
     background: var(--bg);

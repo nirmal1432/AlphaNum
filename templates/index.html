@@ -13,6 +13,9 @@
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
+          
+    <link rel="icon" type="image/png"
+      href="{{ url_for('static', filename='alphanum-logo.png') }}">
 </head>
 
 <body>
@@ -41,6 +44,13 @@
                 <div class="loading-track">
                     <div class="loading-progress"></div>
                 </div>
+            </div>
+
+            <div class="brand-logo brand-logo-large">
+                <img
+                    src="{{ url_for('static', filename='alphanum-logo.png') }}"
+                    alt="AlphaNum Logo"
+                >
             </div>
 
         </div>
