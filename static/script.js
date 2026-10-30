@@ -199,3 +199,7 @@ document.getElementById("answer").addEventListener(
 
     }
 );
+
+window.startGame = startGame;
+window.submitAnswer = submitAnswer;
+window.finishGame = finishGame;
