@@ -1,58 +1,295 @@
 
-<div class="game-info">
+<!DOCTYPE html>
+<html lang="en">
 
-    <div class="timer">
-        <span>TIME</span>
-        <h2 id="timer">00:00</h2>
-    </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    <div class="score">
-        <span>CORRECT</span>
-        <h2 id="score">0</h2>
-    </div>
+    <meta name="theme-color" content="#111a35">
 
-    <div class="score">
-        <span>WRONG</span>
-        <h2 id="wrong">0</h2>
-    </div>
+    <title>AlphaNum | Think Fast. Play Smart.</title>
 
-</div>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
 
-<div class="game-box">
+<body>
 
-    <h3>Select Game Mode</h3>
+    <!-- PAGE 1: WELCOME -->
 
-    <select id="gameMode">
-        <option value="num">Number → Alphabet</option>
-        <option value="alpha">Alphabet → Number</option>
-    </select>
+    <section id="welcomePage" class="page welcome-page">
 
-    <p id="instruction">Ready to test your brain?</p>
+        <div class="welcome-content">
 
-    <h1 id="number">?</h1>
+            <div class="logo">
+                Alpha<span>Num</span>
+            </div>
 
-    <input
-        type="text"
-        id="answer"
-        placeholder="Enter your answer"
-        autocomplete="off"
-        disabled
-    >
+            <div class="brain-icon">🧠</div>
 
-    <button id="startBtn" onclick="startGame()">
-        Start Game
-    </button>
+            <h1>Think Fast.<br>Play Smart.</h1>
 
-    <button id="submitBtn" onclick="submitAnswer()" hidden>
-        Submit Answer
-    </button>
+            <p>Challenge your brain with numbers and alphabets.</p>
 
-    <button id="finishBtn" onclick="finishGame()" hidden>
-        Finish Game
-    </button>
+            <div class="loading-area">
+                <div class="loading-text">
+                    Preparing your experience...
+                </div>
 
-    <div id="message"></div>
+                <div class="loading-track">
+                    <div class="loading-progress"></div>
+                </div>
+            </div>
 
-    <div id="finalResult"></div>
+        </div>
 
-</div>
+    </section>
+
+
+    <!-- PAGE 2: MODE SELECTION -->
+
+    <section id="modePage" class="page hidden">
+
+        <header class="top-header">
+
+            <div class="logo">
+                Alpha<span>Num</span>
+            </div>
+
+            <span class="header-tag">BRAIN CHALLENGE</span>
+
+        </header>
+
+        <main class="mode-container">
+
+            <div class="section-heading">
+                <span class="eyebrow">LET'S GET STARTED</span>
+                <h1>Choose Your Section</h1>
+                <p>Select your preferred challenge mode.</p>
+            </div>
+
+            <div class="mode-options">
+
+                <button class="mode-card active"
+                        data-mode="num">
+
+                    <span class="mode-icon">🔢</span>
+
+                    <span class="mode-info">
+                        <strong>Number → Alphabet</strong>
+                        <small>Example: 5 → E</small>
+                    </span>
+
+                    <span class="mode-check">✓</span>
+
+                </button>
+
+
+                <button class="mode-card"
+                        data-mode="alpha">
+
+                    <span class="mode-icon">🔤</span>
+
+                    <span class="mode-info">
+                        <strong>Alphabet → Number</strong>
+                        <small>Example: E → 5</small>
+                    </span>
+
+                    <span class="mode-check">✓</span>
+
+                </button>
+
+
+                <button class="mode-card"
+                        data-mode="mixed">
+
+                    <span class="mode-icon">🎯</span>
+
+                    <span class="mode-info">
+                        <strong>Mixed Challenge</strong>
+                        <small>Both directions randomly</small>
+                    </span>
+
+                    <span class="mode-check">✓</span>
+
+                </button>
+
+            </div>
+
+            <button id="startGameBtn" class="primary-btn">
+                Start Your Game <span>→</span>
+            </button>
+
+            <p class="bottom-note">
+                ✨ Ready to test your brain?
+            </p>
+
+        </main>
+
+    </section>
+
+
+    <!-- PAGE 3: GAME -->
+
+    <section id="gamePage" class="page hidden">
+
+        <header class="game-header">
+
+            <div class="game-mode-label">
+                <span class="eyebrow">CURRENT CHALLENGE</span>
+                <strong id="currentMode">Number → Alphabet</strong>
+            </div>
+
+            <div class="timer-card">
+                <span>⏱ TIME</span>
+                <strong id="timer">00:00</strong>
+            </div>
+
+        </header>
+
+
+        <main class="game-main">
+
+            <div class="question-card">
+
+                <span class="question-number" id="questionCount">
+                    QUESTION 01
+                </span>
+
+                <h2 id="questionTitle">
+                    What is the alphabet?
+                </h2>
+
+                <div id="question" class="question-display">
+                    5
+                </div>
+
+                <p id="questionHint">
+                    Enter the matching alphabet
+                </p>
+
+
+                <form id="answerForm">
+
+                    <input
+                        type="text"
+                        id="answerInput"
+                        placeholder="Type your answer..."
+                        autocomplete="off"
+                        maxlength="2"
+                        required
+                    >
+
+                    <button type="submit"
+                            id="checkBtn"
+                            class="primary-btn">
+                        Check Answer ✓
+                    </button>
+
+                </form>
+
+
+                <div id="feedback" class="feedback hidden"></div>
+
+                <button id="nextBtn"
+                        class="primary-btn next-btn hidden">
+                    Next Question →
+                </button>
+
+            </div>
+
+
+            <div class="score-panel">
+
+                <div class="score-item correct-box">
+                    <span>✓ CORRECT</span>
+                    <strong id="correctCount">0</strong>
+                </div>
+
+                <div class="score-item wrong-box">
+                    <span>✕ WRONG</span>
+                    <strong id="wrongCount">0</strong>
+                </div>
+
+                <div class="score-item total-box">
+                    <span>◎ TOTAL</span>
+                    <strong id="totalCount">0</strong>
+                </div>
+
+            </div>
+
+            <button id="finishBtn" class="finish-btn">
+                Finish Your Game
+            </button>
+
+        </main>
+
+    </section>
+
+
+    <!-- PAGE 4: RESULT -->
+
+    <section id="resultPage" class="page hidden">
+
+        <main class="result-container">
+
+            <div class="trophy">🏆</div>
+
+            <span class="eyebrow">CHALLENGE COMPLETED</span>
+
+            <h1>Game Completed!</h1>
+
+            <p>Great job! Here's your performance.</p>
+
+            <div class="accuracy-card">
+
+                <strong id="accuracy">0%</strong>
+                <span>YOUR ACCURACY</span>
+
+            </div>
+
+            <div class="result-grid">
+
+                <div class="result-box correct-box">
+                    <strong id="finalCorrect">0</strong>
+                    <span>Correct Answers</span>
+                </div>
+
+                <div class="result-box wrong-box">
+                    <strong id="finalWrong">0</strong>
+                    <span>Wrong Answers</span>
+                </div>
+
+                <div class="result-box total-box">
+                    <strong id="finalTotal">0</strong>
+                    <span>Total Attempts</span>
+                </div>
+
+                <div class="result-box total-box">
+                    <strong id="finalTime">00:00</strong>
+                    <span>Time Taken</span>
+                </div>
+
+            </div>
+
+            <p id="finalMode" class="final-mode"></p>
+
+            <button id="playAgainBtn" class="primary-btn">
+                Play Again ↻
+            </button>
+
+            <button id="homeBtn" class="secondary-btn">
+                Back to Home
+            </button>
+
+        </main>
+
+    </section>
+
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>

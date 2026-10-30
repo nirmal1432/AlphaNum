@@ -15,13 +15,16 @@ def home():
 def new_question():
     mode = request.args.get("mode", "num")
 
+    if mode not in ["num", "alpha", "mixed"]:
+        return jsonify({"error": "Invalid mode"}), 400
+
+    if mode == "mixed":
+        mode = random.choice(["num", "alpha"])
+
     number = random.randint(1, 26)
     alphabet = string.ascii_uppercase[number - 1]
 
-    if mode == "num":
-        question = number
-    else:
-        question = alphabet
+    question = number if mode == "num" else alphabet
 
     return jsonify({
         "question": question,
@@ -32,7 +35,7 @@ def new_question():
 
 @app.route("/check-answer", methods=["POST"])
 def check_answer():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
 
     mode = data.get("mode")
     number = data.get("number")
@@ -42,19 +45,19 @@ def check_answer():
         return jsonify({"error": "Invalid mode"}), 400
 
     if not isinstance(number, int) or not 1 <= number <= 26:
-        return jsonify({"error": "Invalid question"}), 400
+        return jsonify({"error": "Invalid number"}), 400
 
     if mode == "num":
         expected = string.ascii_uppercase[number - 1]
-        correct = answer == expected
-
     else:
         expected = str(number)
-        correct = answer == expected
+
+    correct = answer == expected
 
     return jsonify({
         "correct": correct,
-        "message": "Correct!" if correct else "Wrong answer!"
+        "expected": expected,
+        "message": "Correct Answer!" if correct else "Wrong Answer!"
     })
 
 

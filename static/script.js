@@ -1,91 +1,225 @@
 
+let selectedMode = "num";
+let currentMode = "num";
+
 let currentNumber = 0;
-let score = 0;
+let questionCount = 0;
+
+let correct = 0;
 let wrong = 0;
 let seconds = 0;
+
 let timerInterval = null;
 let gameRunning = false;
-let currentMode = "num";
-let submitting = false;
+let answered = false;
+let loadingQuestion = false;
 
-async function getQuestion() {
 
-    const response = await fetch(
-        `/new-question?mode=${currentMode}`
-    );
+// PAGE CONTROL
 
-    const data = await response.json();
+function showPage(pageId) {
 
-    currentNumber = data.number;
+    document.querySelectorAll(".page").forEach(page => {
+        page.classList.add("hidden");
+    });
 
-    document.getElementById("number").textContent =
-        data.question;
+    document.getElementById(pageId).classList.remove("hidden");
 
-    document.getElementById("answer").value = "";
-    document.getElementById("answer").focus();
+    window.scrollTo(0, 0);
 }
 
 
-function startGame() {
+// WELCOME SCREEN
 
-    score = 0;
+window.addEventListener("load", () => {
+
+    setTimeout(() => {
+        showPage("modePage");
+    }, 2300);
+
+});
+
+
+// MODE SELECTION
+
+document.querySelectorAll(".mode-card").forEach(card => {
+
+    card.addEventListener("click", () => {
+
+        document.querySelectorAll(".mode-card").forEach(item => {
+            item.classList.remove("active");
+        });
+
+        card.classList.add("active");
+
+        selectedMode = card.dataset.mode;
+
+    });
+
+});
+
+
+// START GAME
+
+document.getElementById("startGameBtn").addEventListener("click", async () => {
+
+    correct = 0;
     wrong = 0;
     seconds = 0;
-
-    currentMode = document.getElementById("gameMode").value;
+    questionCount = 0;
 
     gameRunning = true;
+    answered = false;
 
-    document.getElementById("score").textContent = score;
-    document.getElementById("wrong").textContent = wrong;
+    document.getElementById("correctCount").textContent = "0";
+    document.getElementById("wrongCount").textContent = "0";
+    document.getElementById("totalCount").textContent = "0";
+
     document.getElementById("timer").textContent = "00:00";
 
-    document.getElementById("gameMode").disabled = true;
-    document.getElementById("finalResult").textContent = "";
-    document.getElementById("startBtn").hidden = true;
-    document.getElementById("submitBtn").hidden = false;
-    document.getElementById("finishBtn").hidden = false;
+    document.getElementById("finishBtn").disabled = false;
 
-    document.getElementById("answer").disabled = false;
+    showPage("gamePage");
 
-    document.getElementById("instruction").textContent =
-        currentMode === "num"
-        ? "Enter the matching alphabet"
-        : "Enter the matching number";
+    await nextQuestion();
 
-    document.getElementById("message").textContent =
-        "Game started!";
+});
 
-    getQuestion();
+
+// TIMER
+
+function startTimer() {
+
+    clearInterval(timerInterval);
 
     timerInterval = setInterval(() => {
 
+        if (!gameRunning) return;
+
         seconds++;
 
-        let minutes = Math.floor(seconds / 60);
-        let remaining = seconds % 60;
+        const minutes = Math.floor(seconds / 60);
+        const remaining = seconds % 60;
 
         document.getElementById("timer").textContent =
             String(minutes).padStart(2, "0") + ":" +
             String(remaining).padStart(2, "0");
 
     }, 1000);
+
 }
 
 
-async function submitAnswer() {
+function pauseTimer() {
 
-    if (!gameRunning || submitting) return;
+    clearInterval(timerInterval);
 
-    const answer = document.getElementById("answer").value.trim();
+    timerInterval = null;
 
-    if (!answer) {
-        document.getElementById("message").textContent =
-            "Please enter your answer!";
-        return;
+}
+
+
+// GET NEXT QUESTION
+
+async function nextQuestion() {
+
+    if (!gameRunning || loadingQuestion) return;
+
+    loadingQuestion = true;
+
+    try {
+
+        const response = await fetch(
+            `/new-question?mode=${selectedMode}`
+        );
+
+        if (!response.ok) {
+            throw new Error("Unable to load question");
+        }
+
+        const data = await response.json();
+
+        currentNumber = data.number;
+        currentMode = data.mode;
+
+        questionCount++;
+
+        answered = false;
+
+        document.getElementById("question").textContent =
+            data.question;
+
+        document.getElementById("questionCount").textContent =
+            "QUESTION " + String(questionCount).padStart(2, "0");
+
+        document.getElementById("currentMode").textContent =
+            currentMode === "num"
+            ? "Number → Alphabet"
+            : currentMode === "alpha"
+            ? "Alphabet → Number"
+            : "Mixed Challenge";
+
+        document.getElementById("questionTitle").textContent =
+            currentMode === "num"
+            ? "What is the alphabet?"
+            : "What is the number?";
+
+        document.getElementById("questionHint").textContent =
+            currentMode === "num"
+            ? "Enter the matching alphabet"
+            : "Enter the matching number";
+
+        document.getElementById("answerInput").value = "";
+        document.getElementById("answerInput").disabled = false;
+
+        document.getElementById("checkBtn").disabled = false;
+        document.getElementById("checkBtn").hidden = false;
+
+        document.getElementById("feedback").className = "feedback hidden";
+        document.getElementById("nextBtn").classList.add("hidden");
+
+        updateScore();
+
+        document.getElementById("answerInput").focus();
+
+        startTimer();
+
+    } catch (error) {
+
+        alert(error.message);
+
+        gameRunning = false;
+        pauseTimer();
+
+        showPage("modePage");
+
+    } finally {
+
+        loadingQuestion = false;
+
     }
 
-    submitting = true;
+}
+
+
+// CHECK ANSWER
+
+document.getElementById("answerForm").addEventListener("submit", async (event) => {
+
+    event.preventDefault();
+
+    if (!gameRunning || answered || loadingQuestion) return;
+
+    const answer = document.getElementById("answerInput").value.trim();
+
+    if (!answer) return;
+
+    pauseTimer();
+
+    answered = true;
+
+    document.getElementById("answerInput").disabled = true;
+    document.getElementById("checkBtn").disabled = true;
 
     try {
 
@@ -105,44 +239,85 @@ async function submitAnswer() {
 
         });
 
+        if (!response.ok) {
+            throw new Error("Unable to check answer");
+        }
+
         const data = await response.json();
 
-        if (!response.ok) {
-            throw new Error(data.error || "Unable to check answer");
-        }
+        const feedback = document.getElementById("feedback");
+
+        feedback.classList.remove("hidden");
 
         if (data.correct) {
 
-            score++;
+            correct++;
 
-            document.getElementById("message").textContent =
-                "Correct answer!";
+            feedback.className = "feedback correct";
+
+            feedback.textContent = "✓ Correct Answer! Excellent!";
 
         } else {
 
             wrong++;
 
-            document.getElementById("message").textContent =
-                "Wrong answer! Moving to next question.";
+            feedback.className = "feedback wrong";
+
+            feedback.textContent =
+                "✕ Wrong Answer! Correct answer is " + data.expected;
 
         }
 
-        document.getElementById("score").textContent = score;
-        document.getElementById("wrong").textContent = wrong;
+        updateScore();
 
-        await getQuestion();
+        document.getElementById("checkBtn").hidden = true;
+
+        document.getElementById("nextBtn").classList.remove("hidden");
 
     } catch (error) {
 
-        document.getElementById("message").textContent =
-            error.message;
+        answered = false;
 
-    } finally {
+        document.getElementById("answerInput").disabled = false;
+        document.getElementById("checkBtn").disabled = false;
 
-        submitting = false;
+        startTimer();
+
+        alert(error.message);
 
     }
+
+});
+
+
+// NEXT QUESTION BUTTON
+
+document.getElementById("nextBtn").addEventListener("click", async () => {
+
+    if (!answered || loadingQuestion) return;
+
+    await nextQuestion();
+
+});
+
+
+// SCORE UPDATE
+
+function updateScore() {
+
+    document.getElementById("correctCount").textContent = correct;
+
+    document.getElementById("wrongCount").textContent = wrong;
+
+    document.getElementById("totalCount").textContent =
+        correct + wrong;
+
 }
+
+
+// FINISH GAME
+
+document.getElementById("finishBtn").addEventListener("click", finishGame);
 
 
 function finishGame() {
@@ -151,55 +326,53 @@ function finishGame() {
 
     gameRunning = false;
 
-    clearInterval(timerInterval);
+    pauseTimer();
 
-    const total = score + wrong;
+    const total = correct + wrong;
 
     const accuracy = total > 0
-        ? ((score / total) * 100).toFixed(1)
-        : "0.0";
+        ? Math.round((correct / total) * 100)
+        : 0;
 
-    const modeName = currentMode === "num"
-        ? "Number → Alphabet"
-        : "Alphabet → Number";
+    const timeText = document.getElementById("timer").textContent;
 
-    document.getElementById("answer").disabled = true;
-    document.getElementById("gameMode").disabled = false;
+    document.getElementById("accuracy").textContent =
+        accuracy + "%";
 
-    document.getElementById("submitBtn").hidden = true;
-    document.getElementById("finishBtn").hidden = true;
-    document.getElementById("startBtn").hidden = false;
+    document.getElementById("finalCorrect").textContent = correct;
 
-    document.getElementById("number").textContent = "-";
+    document.getElementById("finalWrong").textContent = wrong;
 
-    document.getElementById("finalResult").innerHTML = `
-        <h2>Game Completed!</h2>
-        <p>Mode: ${modeName}</p>
-        <p>Correct Answers: ${score}</p>
-        <p>Wrong Answers: ${wrong}</p>
-        <p>Total Attempts: ${total}</p>
-        <p>Accuracy: ${accuracy}%</p>
-        <p>Time Taken: ${
-            document.getElementById("timer").textContent
-        }</p>
-    `;
+    document.getElementById("finalTotal").textContent = total;
 
-    document.getElementById("message").textContent =
-        "Great job! Play again?";
+    document.getElementById("finalTime").textContent = timeText;
+
+    document.getElementById("finalMode").textContent =
+        "Selected Mode: " +
+        (selectedMode === "num"
+            ? "Number → Alphabet"
+            : selectedMode === "alpha"
+            ? "Alphabet → Number"
+            : "Mixed Challenge");
+
+    showPage("resultPage");
+
 }
 
 
-document.getElementById("answer").addEventListener(
-    "keydown",
-    function(event) {
+// PLAY AGAIN
 
-        if (event.key === "Enter") {
-            submitAnswer();
-        }
+document.getElementById("playAgainBtn").addEventListener("click", () => {
 
-    }
-);
+    showPage("modePage");
 
-window.startGame = startGame;
-window.submitAnswer = submitAnswer;
-window.finishGame = finishGame;
+});
+
+
+// BACK HOME
+
+document.getElementById("homeBtn").addEventListener("click", () => {
+
+    window.location.reload();
+
+});
